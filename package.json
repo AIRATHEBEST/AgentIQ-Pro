@@ -19,7 +19,8 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
-    "@babel/preset-react": "^7.23.3"
+    "@babel/preset-react": "^7.23.3",
+    "eslint-plugin-jsx-a11y": "^6.10.2"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -38,6 +39,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "browser": {
+    "playwright": false,
+    "puppeteer": false,
+    "events": false
   },
   "eslintConfig": {
     "extends": [

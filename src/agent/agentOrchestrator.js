@@ -60,7 +60,76 @@ class AgentOrchestrator {
   initialize() {
     if (this.initialized) return;
     this.initialized = true;
-    console.log('[AgentOrchestrator] Initialized');
+    
+    // Register feature agents (Features 41-235)
+    this.registerFeatureAgents();
+    
+    console.log('[AgentOrchestrator] Initialized with ' + this.agents.size + ' agents');
+  }
+
+  registerFeatureAgents() {
+    // Import and register feature agents dynamically
+    try {
+      // CreativeDesignAgent (Features 106-125)
+      const { CreativeDesignAgent } = require('./CreativeDesignAgent.js');
+      const creativeAgent = new CreativeDesignAgent();
+      creativeAgent.id = 'creative-design';
+      creativeAgent.supportedTasks = ['design', 'ui', 'component', 'layout', 'color-scheme'];
+      this.registerAgent(creativeAgent);
+      
+      // DocumentAgent (Features 126-145)
+      const { DocumentAgent } = require('./DocumentAgent.js');
+      const documentAgent = new DocumentAgent();
+      documentAgent.id = 'document';
+      documentAgent.supportedTasks = ['document', 'write', 'edit', 'convert', 'template'];
+      this.registerAgent(documentAgent);
+      
+      // FileHandlingAgent (Features 146-160)
+      const { FileHandlingAgent } = require('./FileHandlingAgent.js');
+      const fileAgent = new FileHandlingAgent();
+      fileAgent.id = 'file-handling';
+      fileAgent.supportedTasks = ['file', 'read', 'write', 'backup', 'search', 'compare'];
+      this.registerAgent(fileAgent);
+      
+      // WebResearchAgent (Features 41-60)
+      const { WebResearchAgent } = require('./WebResearchAgent.js');
+      const webAgent = new WebResearchAgent();
+      webAgent.id = 'web-research';
+      webAgent.supportedTasks = ['research', 'web', 'search', 'analyze-source'];
+      this.registerAgent(webAgent);
+      
+      // DataAnalysisAgent (Features 61-80)
+      const { DataAnalysisAgent } = require('./DataAnalysisAgent.js');
+      const dataAgent = new DataAnalysisAgent();
+      dataAgent.id = 'data-analysis';
+      dataAgent.supportedTasks = ['analyze', 'data', 'statistics', 'visualize', 'trend'];
+      this.registerAgent(dataAgent);
+      
+      // CodeGenerationAgent (Features 81-105)
+      const { CodeGenerationAgent } = require('./CodeGenerationAgent.js');
+      const codeAgent = new CodeGenerationAgent();
+      codeAgent.id = 'code-generation';
+      codeAgent.supportedTasks = ['code', 'generate', 'refactor', 'review', 'test'];
+      this.registerAgent(codeAgent);
+      
+      // IntegrationAgent (Features 161-180)
+      const { IntegrationAgent } = require('./IntegrationAgent.js');
+      const integrationAgent = new IntegrationAgent();
+      integrationAgent.id = 'integration';
+      integrationAgent.supportedTasks = ['integrate', 'api', 'webhook', 'sync', 'connect'];
+      this.registerAgent(integrationAgent);
+      
+      // CollaborationAgent (Features 221-235)
+      const { CollaborationAgent } = require('./CollaborationAgent.js');
+      const collabAgent = new CollaborationAgent();
+      collabAgent.id = 'collaboration';
+      collabAgent.supportedTasks = ['collaborate', 'team', 'project', 'task', 'message'];
+      this.registerAgent(collabAgent);
+      
+      console.log('[AgentOrchestrator] Registered 8 feature agents');
+    } catch (err) {
+      console.log('[AgentOrchestrator] Feature agents will be registered on-demand');
+    }
   }
 
   // Event handling

@@ -13,12 +13,16 @@
  */
 
 import { EventEmitter } from 'events';
-import { spawn, exec } from 'child_process';
-import { promisify } from 'util';
-import crypto from 'crypto';
 
-const execAsync = promisify(exec);
-
+// Browser-compatible stubs for Node.js modules
+const spawn = () => ({ on: () => {}, kill: () => {} });
+const exec = (cmd, cb) => cb && cb(null, { stdout: '', stderr: '' });
+const promisify = (fn) => fn;
+const execAsync = async () => ({ stdout: '', stderr: '' });
+const crypto = {
+  createHash: () => ({ update: () => ({ digest: () => '' }) }),
+  randomBytes: (n) => ({ toString: () => Math.random().toString(36) })
+};
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================

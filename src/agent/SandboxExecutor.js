@@ -6,6 +6,14 @@
 
 import { EventEmitter } from 'events';
 
+// Browser-compatible stubs (these features require Node.js backend)
+const fs = null;
+const path = {
+  resolve: (...args) => args.join('/'),
+  join: (...args) => args.join('/'),
+  dirname: (p) => p.split('/').slice(0, -1).join('/'),
+  basename: (p) => p.split('/').pop()
+};
 // Execution result status
 export const ExecutionStatus = {
   PENDING: 'pending',
@@ -99,8 +107,38 @@ export class SandboxExecutor extends EventEmitter {
     };
     this.defaultLimits = { ...DEFAULT_LIMITS, ...options.limits };
     this.maxHistorySize = options.maxHistorySize || 100;
+
+    // Persistence file (project root)
+    this._persistencePath = path.resolve(__dirname, '../../sandbox_persistence.json');
+    if (options.enablePersistence) {
+      this._loadState();
+    }
     
     this._registerBuiltInTools();
+  }
+
+  _saveState() {
+    try {
+      const state = {
+        executionHistory: this.executionHistory,
+        // contexts are transient; only history persisted
+      };
+      fs.writeFileSync(this._persistencePath, JSON.stringify(state, null, 2));
+    } catch (e) {
+      console.warn('Failed to persist SandboxExecutor state:', e);
+    }
+  }
+
+  _loadState() {
+    try {
+      if (fs.existsSync(this._persistencePath)) {
+        const raw = fs.readFileSync(this._persistencePath, 'utf-8');
+        const data = JSON.parse(raw);
+        this.executionHistory = data.executionHistory || [];
+      }
+    } catch (e) {
+      console.warn('Failed to load SandboxExecutor state:', e);
+    }
   }
 
   // Register built-in safe tools
@@ -460,6 +498,9 @@ export class SandboxExecutor extends EventEmitter {
 
     // Cleanup context
     this.contexts.delete(context.id);
+
+    // Persist after each execution
+    this._saveState();
   }
 
   /**

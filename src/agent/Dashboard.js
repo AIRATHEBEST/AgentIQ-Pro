@@ -808,11 +808,7 @@ export {
   MetricData,
   MetricSeries,
   Alert,
-  WidgetConfig,
-  DASHBOARD_THEMES,
-  PANEL_LAYOUTS,
-  METRIC_TYPES,
-  ALERT_LEVELS
+  WidgetConfig
 };
 
 export default dashboard;

@@ -4,12 +4,30 @@
  * semantic search, dependency tracking, and change management.
  */
 
-const fs = require('fs').promises;
-const fsSync = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const EventEmitter = require('events');
-
+// Browser-compatible stubs for Node.js modules
+const fs = null;
+const fsSync = {
+  existsSync: () => false,
+  statSync: () => ({ isDirectory: () => false, isFile: () => false }),
+  readdirSync: () => [],
+  readFileSync: () => '',
+  writeFileSync: () => {}
+};
+const path = {
+  resolve: (...args) => args.join('/'),
+  join: (...args) => args.join('/'),
+  dirname: (p) => p.split('/').slice(0, -1).join('/'),
+  basename: (p) => p.split('/').pop(),
+  extname: (p) => {
+    const base = path.basename(p);
+    const idx = base.lastIndexOf('.');
+    return idx >= 0 ? base.slice(idx) : '';
+  }
+};
+const crypto = {
+  createHash: () => ({ update: () => ({ digest: () => '' }) })
+};
+const EventEmitter = class extends (class { constructor() { this._events = {}; } on() {} off() {} emit() {} }) {};
 // ============================================================================
 // CUSTOM ERRORS
 // ============================================================================
@@ -1239,7 +1257,7 @@ class FilesystemIntelligence extends EventEmitter {
 
     // Regex patterns for JS/TS
     const patterns = {
-      function: /(?:(?:export|async|await)\s+)*(?:function\s+(\w+)|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?(?:\([^)]*\)\s*=>|function\s*\([^)]*\))|(\w+)\s*\([^)]*\)\s*{/g,
+      function: /(?:(?:export|async|await)\s+)*(?:function\s+(\w+)|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?(?:\([^)]*\)\s*=>|function\s*\([^)]*\))|(\w+)\s*\([^)]*\))\s*\{/g,
       class: /class\s+(\w+)(?:\s+extends\s+(\w+))?(?:\s+implements\s+([\w,\s]+))?/g,
       import: /import\s+(?:(?:(\w+)|(?:\{[^}]*\}|\*\s+as\s+\w+))\s+from\s+)?['"]([^'"]+)['"]/g,
       export: /export\s+(?:default\s+)?(?:const|let|var|function|class|interface|type)\s+(\w+)/g,

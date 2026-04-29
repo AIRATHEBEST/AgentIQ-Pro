@@ -1306,7 +1306,5 @@ class PolicyEngine extends EventEmitter {
   }
 }
 
-// Singleton export
-const policyEngine = new PolicyEngine();
-export default policyEngine;
-export { PolicyEngine, Policy, Rule, AuditLogEntry, Subject, Resource, Permission, Role, PolicyVersion };
+export { PolicyEngine };
+export default PolicyEngine;

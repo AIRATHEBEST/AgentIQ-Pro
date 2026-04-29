@@ -3,6 +3,9 @@
  * Prevents React re-render storms during high-frequency agent execution
  */
 
+// React context for global EventBus
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+
 export class EventThrottler {
   constructor(options = {}) {
     this.events = {};
@@ -290,9 +293,6 @@ export function useEventBatcher(eventBus, eventTypes, options = {}) {
 
   return { flush };
 }
-
-// React context for global EventBus
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 
 const EventBusContext = createContext(null);
 

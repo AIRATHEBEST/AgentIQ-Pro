@@ -465,13 +465,14 @@ Respond with just the thought content, no explanation.`;
     factors.push({ name: 'avgConfidence', value: avgConfidence, weight: 0.4 });
     
     // Cost efficiency factor (prefer lower cost)
-    const maxCost = Math.max(...branches.map(b => b.estimatedCost));
+    const allBranches = this.branches || [branch];
+    const maxCost = Math.max(...allBranches.map(b => b.estimatedCost));
     const costEfficiency = 1 - (branch.estimatedCost / (maxCost || 1));
     score += costEfficiency * 0.2;
     factors.push({ name: 'costEfficiency', value: costEfficiency, weight: 0.2 });
     
     // Time efficiency factor
-    const maxTime = Math.max(...branches.map(b => b.estimatedTime));
+    const maxTime = Math.max(...allBranches.map(b => b.estimatedTime));
     const timeEfficiency = 1 - (branch.estimatedTime / (maxTime || 1));
     score += timeEfficiency * 0.15;
     factors.push({ name: 'timeEfficiency', value: timeEfficiency, weight: 0.15 });

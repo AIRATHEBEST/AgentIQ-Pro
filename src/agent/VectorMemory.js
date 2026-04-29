@@ -339,7 +339,7 @@ class VectorMemory {
       ...r.memory,
       relevanceScore: r.similarity,
       boostFactors: {
-        importance: memory.importance,
+        importance: r.memory.importance,
         recency: this.calculateRecencyBoost(r.memory),
       },
     }));

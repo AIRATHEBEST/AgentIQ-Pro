@@ -575,7 +575,8 @@ export class KnowledgeGraph {
   }
 
   calculateBetweenness() {
-    this.nodes.forEach((node, id) => {
+    const n = this.nodes.size;
+    this.nodes.forEach((nodeData, id) => {
       let betweenness = 0;
       const otherNodes = Array.from(this.nodes.keys()).filter(n => n !== id);
 
@@ -598,7 +599,7 @@ export class KnowledgeGraph {
   }
 
   calculateClusteringCoefficient() {
-    this.nodes.forEach((node, id) => {
+    this.nodes.forEach((nodeData, id) => {
       const neighbors = new Set();
       this.getEdgesForNode(id).forEach(edge => neighbors.add(edge.targetId));
       this.getIncomingEdges(id).forEach(edge => neighbors.add(edge.sourceId));

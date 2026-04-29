@@ -3,8 +3,15 @@
  * Run agents asynchronously with job queue management
  */
 
-const EventEmitter = require('events');
-
+// Browser-compatible stubs for Node.js modules
+const EventEmitter = class extends (class { constructor() { this._events = {}; } on() {} off() {} emit() {} }) {};
+const fs = null;
+const path = {
+  resolve: (...args) => args.join('/'),
+  join: (...args) => args.join('/'),
+  dirname: (p) => p.split('/').slice(0, -1).join('/'),
+  basename: (p) => p.split('/').pop()
+};
 const AGENT_PRIORITY = {
   LOW: 0,
   NORMAL: 1,
@@ -370,20 +377,25 @@ class BackgroundAgent extends EventEmitter {
       enableMetrics: config.enableMetrics || true,
       ...config
     };
-
-    this.queues = new Map();
-    this.workers = new Map();
-    this.activeJobs = new Map();
-    this.completedJobs = new Map();
-    this.jobHistory = [];
-    this.metrics = {
-      totalJobs: 0,
-      completedJobs: 0,
-      failedJobs: 0,
-      totalRuntime: 0,
-      averageRuntime: 0,
-      uptime: Date.now()
-    };
+    // Persistence file path (project root)
+      this._persistencePath = path.resolve(__dirname, '../../persistence.json');
+      this.queues = new Map();
+      this.workers = new Map();
+      this.activeJobs = new Map();
+      this.completedJobs = new Map();
+      this.failedJobs = new Map();  // added for persistence
+      this.jobHistory = [];
+      this.metrics = {
+        totalJobs: 0,
+        completedJobs: 0,
+        failedJobs: 0,
+        totalRuntime: 0,
+        averageRuntime: 0,
+        uptime: Date.now()
+      };
+      if (this.config.enablePersistence) {
+        this._loadState();
+      }
 
     this.setupDefaultQueue();
     this.setupWorkers();
@@ -465,7 +477,39 @@ class BackgroundAgent extends EventEmitter {
     
     this.emit(JOB_EVENTS.CREATED, job);
     
-    return queue.enqueue(job);
+    const enqJob = queue.enqueue(job);
+    if (this.config.enablePersistence) this._saveState();
+    return enqJob;
+  }
+
+  _saveState() {
+    try {
+      const state = {
+        activeJobs: Array.from(this.activeJobs.values()).map(j => (typeof j.toJSON === 'function' ? j.toJSON() : j)),
+        completedJobs: Array.from(this.completedJobs.values()).map(j => (typeof j.toJSON === 'function' ? j.toJSON() : j)),
+        failedJobs: Array.from(this.failedJobs.values()).map(j => (typeof j.toJSON === 'function' ? j.toJSON() : j)),
+        jobHistory: this.jobHistory
+      };
+      fs.writeFileSync(this._persistencePath, JSON.stringify(state, null, 2));
+    } catch (e) {
+      console.warn('Failed to persist BackgroundAgent state:', e);
+    }
+  }
+
+  _loadState() {
+    try {
+      if (fs.existsSync(this._persistencePath)) {
+        const raw = fs.readFileSync(this._persistencePath, 'utf-8');
+        const data = JSON.parse(raw);
+        // Rehydrate minimal job info (as plain objects)
+        this.activeJobs = new Map(data.activeJobs.map(j => [j.id, j]));
+        this.completedJobs = new Map(data.completedJobs.map(j => [j.id, j]));
+        this.failedJobs = new Map(data.failedJobs.map(j => [j.id, j]));
+        this.jobHistory = data.jobHistory || [];
+      }
+    } catch (e) {
+      console.warn('Failed to load persisted BackgroundAgent state:', e);
+    }
   }
 
   submitBatch(jobs, queueName = 'default') {
@@ -536,6 +580,7 @@ class BackgroundAgent extends EventEmitter {
     }
 
     this.emit(JOB_EVENTS.COMPLETED, job);
+    if (this.config.enablePersistence) this._saveState();
   }
 
   onJobFailed(job, error) {
@@ -546,6 +591,7 @@ class BackgroundAgent extends EventEmitter {
     }
 
     this.emit(JOB_EVENTS.FAILED, { job, error });
+    if (this.config.enablePersistence) this._saveState();
   }
 
   registerAgentHandler(agentType, handler) {
@@ -649,16 +695,16 @@ class BackgroundAgent extends EventEmitter {
     return cleared;
   }
 
-  shutdown() {
-    this.emit('agent:shutdown', { id: this.config.id });
-    
-    for (const [name, queue] of this.queues.entries()) {
-      this.cancelJob;
+    shutdown() {
+      this.emit('agent:shutdown', { id: this.config.id });
+      
+      for (const [name, queue] of this.queues.entries()) {
+        this.cancelJob(name);
+      }
+      
+      this.queues.clear();
+      this.workers.clear();
     }
-    
-    this.queues.clear();
-    this.workers.clear();
-  }
 }
 
 module.exports = {
@@ -668,3 +714,4 @@ module.exports = {
   AGENT_PRIORITY,
   JOB_STATUS,
   JOB_EVENTS
+};
